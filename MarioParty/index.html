@@ -1,46 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8">
-	<!--
-	MIT License
+    <meta charset="UTF-8">
+    <!--
+    MIT License
 
-	Copyright (c) 2017 Vic
+    Copyright (c) 2017 Vic
 
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 -->
 <title>SineGame</title>
 <style type="text/css">
 body {
-	margin: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	position: absolute;
-	align-items: center;
-	flex-direction: column;
-	justify-content: center;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: absolute;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
 }
 
 #highscores {
-	right: 0px;
-	position: absolute;
+    right: 0px;
+    position: absolute;
 }
 </style>
 
@@ -57,316 +57,319 @@ body {
 
 <script type="text/javascript" src="Canvas/canvas.js"></script>
 <script type="text/javascript">
-	let player;
-	let score = 0;
-	let moveTime = 10;
-	let smallspeed = 2;
-	let moving = false;
-	let started = false;
-	let gameover = false;
-	let name = '';
 
-	let up = 0;
-	let speed = 5;
-	let framesup = 0;
-	let framesdown = 0;
+    let player;
+    let score = 0;
+    let moveTime = 10;
+    let smallspeed = 0;
+    let moving = false;
+    let started = true;
+    let gameover = false;
+    let trail = [];
 
-	const trail = [];
-	const obstacles = [];
-	const colors = ["#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#16a085", "#27ae60", "#2980b9", "#8e44ad", "#f1c40f", "#e67e22", "#e74c3c", "#f39c12", "#d35400", "#c0392b"];
+    let up = 1;
+    let speed = 0;
+    let framesup = 0;
+    let framesdown = 0;
 
-	function setup() {
-		canvas = new Canvas(document.getElementById('canvas'), 300, 500);
-		player = new Player(canvas);
-		combo = new Combo();
+    const obstacles = [];
+    const colors = ["#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#16a085", "#27ae60", "#2980b9", "#8e44ad", "#f1c40f", "#e67e22", "#e74c3c", "#f39c12", "#d35400", "#c0392b"];
 
-		const nameElem = document.getElementById('name');
+    function setup() {
+        canvas = new Canvas(document.getElementById('canvas'), 300, 500);
+        player = new Player(canvas);
+        combo = new Combo();
 
-		// Keyboard
-		window.addEventListener('keydown', evt => {
-			if (document.activeElement != nameElem) {
-				if (evt.ctrlKey) speed = 15;
-				else speed = 5;
+        const nameElem = document.getElementById('name');
 
-				if (gameover & !moving){
-					gameover = false;
-					obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), speed, center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
-					loop();
-				}
-				up = 0;
-				framesup = 0;
-				framesdown += 1;
-				moveTime = 10;
-				moving = true;
-			}
-		});
+        // Keyboard
+        window.addEventListener('keydown', evt => {
+            if (document.activeElement != nameElem) {
+                if (evt.ctrlKey) speed = 15;
+                else speed = 5;
 
-		window.addEventListener('keyup', evt => {
-			up = 1
-			moving = false;
-			started = true;
-		});
+                if (gameover && !moving){
+                    gameover = false;
+                    obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
+                    loop();
+                }
+                up = 0;
+                framesup = 0;
+                framesdown += 1;
+                moveTime = 10;
+                moving = true;
+            }
+        });
 
-		// Touch
-		window.addEventListener('touchstart', evt => {
-			evt.preventDefault();
-			if (gameover & !moving){
-				gameover = false;
-				obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), speed, center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
-				loop();
-			}
+        window.addEventListener('keyup', evt => {
+            up = 1;
+            moving = false;
+            started = true;
+        });
 
-			framesdown += 1;
-			moveTime = 10;
-			moving = true;
-		});
+        // Touch
+        window.addEventListener('touchstart', evt => {
+            if (document.activeElement != nameElem && nameElem.value !== '') {
+                evt.preventDefault();
+                if (gameover && !moving){
+                    gameover = false;
+                    obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
+                    loop();
+                }
 
-		window.addEventListener('touchend', evt => {
-			up = 1;
-			moving = false;
-			started = true;
-		});
+                framesdown += 1;
+                moveTime = 10;
+                moving = true;
+            }
+        });
 
-		obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), speed, center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
+        window.addEventListener('touchend', evt => {
+            up = 1;
+            moving = false;
+            started = true;
+        });
 
-		// Highscores
-		updateInterface();
+        obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
 
-		showUsernameMessage(nameElem);
-	}
+        // Highscores
+        updateInterface();
 
-	function draw() {
-		framesup += up;
+        showUsernameMessage(nameElem);
+    }
 
-		if (framesup >= 30 && combo.combo > 0) {
-			combo.combo = 0;
-			combo.ticks = 0;
-			framesdown = 0;
-			framesup = 0;
-			up = 0;
-		}
+    function draw() {
+        
 
-		canvas.background('#CCCCCC');
-		canvas.connect(trail, 4, '#2196f3');
+        canvas.background('#CCCCCC');
+        canvas.connect(trail, 4, '#2196f3');
 
-		trail.forEach((object, key) => {
-			if (object.y > canvas.height) trail.splice(key, 1);
-			else if (moving) object.y += speed;
-		});
+        trail.forEach((object, key) => {
+            if (object.y > canvas.height) trail.splice(key, 1);
+            object.y += smallspeed;
+        });
 
-		if (!moving) trail.length = 0;
+        player.update();
+        player.draw();
 
-		player.update();
-		player.draw();
+        if (!moving && started && score !== 0) moveTime -= 0.06;
 
-		if (!moving && started) moveTime -= 0.06;
+        // For collision detection
+        const circle = {
+            x: player.pos.x,
+            y: player.pos.y,
+            r: player.size
+        };
 
-		// For collision detection
-		const circle = {
-			x: player.pos.x,
-			y: player.pos.y,
-			r: player.size
-		};
+        obstacles.forEach((object, key) => {
+            object.draw();
 
-		obstacles.forEach((object, key) => {
-			object.draw();
+            if (started) {
+                if (moving) {
+                    object.move();
+                    score += speed / 100;
+                } else {
+                    object.stop();
+                }
+            }
 
-			if (started) {
-				if (moving) {
-					object.move();
-					score += speed / 100;
-				} else {
-					object.stop();
-				}
-			}
+            // Check off-screen
+            if (object.pos.y - object.size > canvas.height) obstacles.splice(key, 1);
 
-			// Check off-screen
-			if (object.pos.y - object.size > canvas.height) obstacles.splice(key, 1);
+            const rect = {
+                x: object.pos.x,
+                y: object.pos.y,
+                w: object.size,
+                h: object.size
+            };
 
-			const rect = {
-				x: object.pos.x,
-				y: object.pos.y,
-				w: object.size,
-				h: object.size
-			};
+            // Check collision
+            if (Math.rectCircleColliding(circle, rect)) gameOver();
 
-			// Check collision
-			if (Math.rectCircleColliding(circle, rect)) gameOver();
+            // Check if past a certain point and spawn a new obstacle
+            if (object.pos.y >= Math.randomBetween(-10, 10) + ((canvas.height / 3)) && object.hasSpawned === false) {
+                object.hasSpawned = true;
+                obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
+            }
+        });
+        combo.update();
 
-			// Check if past a certain point and spawn a new obstacle
-			if (object.pos.y >= Math.randomBetween(-10, 10) + ((canvas.height / 3)) && object.hasSpawned == false) {
-				object.hasSpawned = true;
-				obstacles.push(new Obstacle(canvas, Math.randomBetween(30, 60), speed, center.x + Math.randomBetween(-canvas.width / 3, canvas.width / 3)));
-			}
-			combo.update()
-		});
+        if (moveTime <= 0) gameOver();
 
-		if (moveTime <= 0) gameOver();
+        canvas.background('rgba(255, 255, 255, 0.5)');
+        canvas.text(Math.round(moveTime), 10, 25, (moveTime <= 5) ? 'red' : 'white', 20, 'left');
+        canvas.text(Math.round(score), canvas.width - 10, 25, 'white', 20, 'right');
+    }
 
-		canvas.background('rgba(255, 255, 255, 0.5)');
-		canvas.text(Math.round(moveTime), 10, 25, (moveTime <= 5) ? 'red' : 'white', 20, 'left');
-		canvas.text(Math.round(score), canvas.width - 10, 25, 'white', 20, 'right');
-	}
+    function showUsernameMessage(nameElem) {
+        if(nameElem.value.trim() !== ''){
+            nameElem.style.border = '';
+            canvas.canvas.focus();
+        } else {
+            alert('Add your name!\nIf you don\'t your score won\'t be saved!');
+            nameElem.focus();
+            nameElem.style.border = 'red solid 2px';
+        }
+    }
 
-	function showUsernameMessage(nameElem) {
-		alert('Add your name!\nIf you don\'t your score won\'t be saved!');
-		nameElem.focus();
-		nameElem.style.border = 'red solid 2px';
-	}
+    function gameOver() {
+        noLoop();
+        canvas.text('YOU LOST', center.x, center.y, 'red', 50);
+        canvas.text('SCORE: ' + Math.round(score), center.x, center.y + 50, 'white', 30);
+        const nameElem = document.getElementById('name');
+        const name = nameElem.value.trim();
+        if (name !== '') {
+            if (navigator.onLine) {
+                updateInterface('?name='+name+'&score='+score);
+            }
+        } else {
+            showUsernameMessage(nameElem);
+        }
+        trail.length = 0;
+        gameover = true;
+        obstacles.length = 0;
+        score = 0;
+        time = 0;
+        combo.combo = 0;
+        framesup = 0;
+        framesdown = 0;
+    }
 
-	function gameOver() {
-		noLoop();
-		canvas.text('YOU LOST', center.x, center.y, 'red', 50);
-		canvas.text('SCORE: ' + Math.round(score), center.x, center.y + 50, 'white', 30);
-		const nameElem = document.getElementById('name');
-		const name = nameElem.value.trim();
-		if (name != '') {
-			if (navigator.onLine) {
-				updateInterface('?name='+name+'&score='+score)
-			}
-		} else {
-			showUsernameMessage(nameElem);
-		}
+    class Combo {
+        constructor() {
+            this.onscreen = false;
+            this.ticks = 0;
+            this.combo = 0;
+        }
 
-		gameover = true;
-		obstacles.length = 0;
-		score = 0;
-		time = 0;
-		combo.combo = 0;
-		framesup = 0;
-		framesdown = 0;
-	}
+        update() {
+            framesup += up;
 
-	class Combo {
-		constructor() {
-			this.onscreen = false;
-			this.ticks = 0;
-			this.combo = 0;
-		}
+            if (framesup >= 30 && combo.combo > 0) {
+                combo.combo = 0;
+                combo.ticks = 0;
+                framesdown = 0;
+                framesup = 0;
+                up = 0;
+            }
+            if ((framesdown + 1)% 100 === 0 && !this.onscreen && score!==0 ) {
+                this.combo += 1;
+                this.ticks = 0;
+                this.scored = false;
+                this.onscreen = true;
+            }
+            if (this.onscreen){
+                this.ticks += 1;
+                if (this.combo > 0) {
+                    canvas.text("combo "+this.combo+"!", center.x, center.y, 'blue', 20);
+                }
+                if (this.ticks > 120) {
+                    this.onscreen = false;
+                }
+                if (!this.scored) {
+                    this.scored = true;
+                    score += this.combo * 10;
+                }
+            }
+        }
+    }
 
-		update() {
-			if ((framesdown + 1)% 100 == 0 && !this.onscreen && score!=0 ) {
-				this.combo += 1;
-				this.ticks = 0;
-				this.scored = false;
-				this.onscreen = true;
-			}
-			if (this.onscreen){
-				this.ticks += 1;
-				if (this.combo > 0) {
-					canvas.text("combo "+this.combo+"!", center.x, center.y, 'blue', 20);
-				}
-				if (this.ticks > 120) {
-					this.onscreen = false;
-				}
-				if (!this.scored) {
-					this.scored = true;
-					score += this.combo * 10
-				}
-			}
-		}
-	}
+    class Player {
+        constructor(canvas) {
+            this.count = 0;
+            this.size = 10;
+            this.speed = 0.03;
+            this.canvas = canvas;
+            this.pos = new Vector(center.x, center.y + canvas.height / 10);
+        }
 
-	class Player {
-		constructor(canvas) {
-			this.count = 0;
-			this.size = 10;
-			this.speed = 0.03;
-			this.canvas = canvas;
-			this.pos = new Vector(center.x, center.y + canvas.height / 10);
-		}
+        update() {
+            this.pos.x = Math.floor((this.canvas.width / 2) + (Math.sin(this.count)) * (this.canvas.width / 2 - 30));
+            this.count += this.speed;
 
-		update() {
-			this.pos.x = Math.floor((this.canvas.width / 2) + (Math.sin(this.count)) * (this.canvas.width / 2 - 30));
-			this.count += this.speed;
+            if (frameCount % 5 === 0) trail.push(this.pos.copy());
+            trail = trail.splice(-15);
+        }
 
-			if (frameCount % 5 == 0 && moving) trail.push(this.pos.copy());
-		}
+        draw() {
+            this.canvas.circle(this.pos.x, this.pos.y, this.size, '#2196f3', true);
+        }
+    }
 
-		draw() {
-			this.canvas.circle(this.pos.x, this.pos.y, this.size, '#2196f3', true);
-		}
-	}
+    class Obstacle {
+        constructor(canvas, size, xPos) {
+            this.size = size;
+            this.canvas = canvas;
+            this.hasSpawned = false;
+            this.color = colors.random();
+            this.pos = new Vector(xPos, -this.size);
+        }
 
-	class Obstacle {
-		constructor(canvas, size, speed, xPos) {
-			this.size = size;
-			this.canvas = canvas;
-			this.hasSpawned = false;
-			this.color = colors.random();
-			this.pos = new Vector(xPos, -this.size);
-		}
+        move() {
+            this.pos.y += smallspeed;
+            if(smallspeed < speed) smallspeed += speed / 20;
+            else if (smallspeed > speed) smallspeed = speed;
+        }
 
-		move() {
-			this.pos.y += smallspeed;
-			if(smallspeed < speed) smallspeed += speed / 15;
-			else if (smallspeed > speed) smallspeed = speed;
-		}
+        stop() {
+            this.pos.y += smallspeed;
+            smallspeed -= speed / 120;
+            if (smallspeed < 0) smallspeed = 0;
+        }
 
-		stop() {
-			this.pos.y += smallspeed;
-			smallspeed -= speed / 120;
-			if (smallspeed < 0) smallspeed = 0;
-		}
+        draw() {
+            this.canvas.square(this.pos.x, this.pos.y, this.size, this.color, false);
+        }
+    }
 
-		draw() {
-			this.canvas.square(this.pos.x, this.pos.y, this.size, this.color, false);
-		}
-	}
+    function updateInterface(params) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('get', 'scores.php'+(params||""), true);
+        xhr.responseType = 'json';
+        if (!params) {
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    let scoreboard = xhr.response.scoresCSV.split('\n');
+                    let result = "<tr><th><b>name</b></th><th><b>score</b></th></tr>";
+                    for (let i = 0; i < Math.min(scoreboard.length-1,5); i++) {
+                        let split = scoreboard[i].split(",");
+                        result+="<tr><td>"+split[0]+"</th><td>"+split[1]+"</td></tr>";
+                    }
 
-	Array.prototype.random = function() {
-		return this[Math.floor(Math.random() * this.length)];
-	}
-
-	function updateInterface(params) {
-		var xhr = new XMLHttpRequest();
-		xhr.open('get', 'scores.php'+(params||""), true);
-		xhr.responseType = 'json';
-		if (!params) {
-			xhr.onload = function() {
-				if (xhr.status == 200) {
-					var scoreboard = xhr.response.scoresCSV.split('\n');
-					var result = "<tr><th><b>name</b></th><th><b>score</b></th></tr>";
-					for (var i = 0; i < Math.min(scoreboard.length-1,5); i++) {
-						var split = scoreboard[i].split(",");
-						result+="<tr><td>"+split[0]+"</th><td>"+split[1]+"</td></tr>";
-					}
-
-					document.getElementById("highscores").innerHTML = result;
-				}
-			};
-		}
-		else {
-			xhr.onload = function(){
-				updateInterface()
-			}
-		}
-		xhr.send();
-	};
+                    document.getElementById("highscores").innerHTML = result;
+                }
+            };
+        }
+        else {
+            xhr.onload = function(){
+                updateInterface();
+            };
+        }
+        xhr.send();
+    }
 </script>
 
-<!--  Compatibility check	-->
+<!--  Compatibility check    -->
 <script type="text/javascript">
-	if (!('forEach' in []))
-		alert('Your browser is not supported. Download the latest Chrome or Firefox');
+    if (!('forEach' in []))
+        alert('Your browser is not supported. Download the latest Chrome or Firefox');
 </script>
 
 <!-- SW -->
 <script>
-	if ('serviceWorker' in navigator) {
-		navigator.serviceWorker.register('sw.js').then(reg => {
-			console.log("Serviceworker registered");
-		}).catch(err => {
-			console.log("Error regestering Serviceworker ", err)
-		});
-	}
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log("Serviceworker registered");
+        }).catch(err => {
+            console.log("Error regestering Serviceworker ", err)
+        });
+    }
 </script>
 </head>
 <body>
 
-	<canvas id="canvas"></canvas>
-	<input type="text" id="name">
-	<table id="highscores" border="1"></table>
+    <canvas id="canvas"></canvas>
+    <input type="text" id="name">
+    <table id="highscores" border="1"></table>
 
 </body>
 </html>
