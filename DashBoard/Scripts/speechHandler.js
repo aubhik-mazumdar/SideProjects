@@ -54,6 +54,15 @@ if ('webkitSpeechRecognition' in window) {
 				speachSynth.speak(speechSynthesisUtterance);
 				recognition.stop();
 				alreadyTalked = true;
+			} else if (checkString.indexOf('quote') > -1) {
+				const quoteElem = document.getElementById('quote').querySelector('div');
+				const quoteText = quoteElem.querySelector('a').innerText;
+				const quoteAuthor = quoteElem.querySelector('span').innerText.replace('- ', '');
+
+				speechSynthesisUtterance.text = `${quoteText} by ${quoteAuthor}`;
+				speachSynth.speak(speechSynthesisUtterance);
+				recognition.stop();
+				alreadyTalked = true;
 			}
 		}
 	}

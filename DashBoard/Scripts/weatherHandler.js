@@ -25,8 +25,8 @@ function weatherHandlerLoader() {
 
 					console.log(weather);
 					div.innerHTML = `<canvas id="weatherIcon" width="25" height="25"></canvas><span>${Math.round(weather.temperature)}°C</span><span>${weather.summary}</span>`;
-					skycons(weather.icon);
 					document.body.querySelector('.weather').appendChild(div);
+					skycons(weather.icon);
 				} else error(json.error);
 			});
 		}).catch(err => {
