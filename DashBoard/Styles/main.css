@@ -1,0 +1,276 @@
+/* reset */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+
+/* Main */
+body {
+	width:100%;
+	height:100%;
+	text-align:center;
+	font-family: 'Roboto Light', sans-serif;
+}
+
+h1 {
+	padding:2%;
+	font-size:250%;
+}
+
+h2 {
+	padding:2%;
+	font-size:200%;
+}
+
+h3 {
+	font-size:150%;
+}
+
+h4 {
+	font-size:100%;
+}
+
+a {
+	cursor:pointer;
+	color:#999999;
+	text-decoration:none;
+
+	-webkit-transition:all .5s;
+	transition:all .5s;
+}
+
+a:hover {
+	color:#BC80FF;
+	text-decoration:underline;
+}
+
+
+
+/* Main */
+body {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	color: white;
+	display: grid;
+	position: absolute;
+
+	grid-column-gap: 5px;
+	grid-template-columns: 1fr 3fr 1fr;
+	grid-template-rows: 1fr 1fr 1fr 1fr;
+
+	background-position: center;
+	background-repeat: no-repeat;
+	background-image: url('../Assets/background.png');
+}
+
+body #clock {
+	grid-row: 2;
+	grid-column: 2;
+
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+}
+
+body #clock span {
+	color: white;
+	display: block;
+	font-size: 5em;
+	text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+	font-family: 'Roboto Black', sans-serif;
+}
+
+body #clock span:last-child {
+	font-size: 2em;
+	font-family: 'Roboto Light', sans-serif;
+}
+
+body .weather {
+	grid-row: 1;
+	grid-column: 3;
+}
+
+body .weather div {
+	width: 120px;
+	float: right;
+}
+
+body .weather div span {
+	padding: 5px;
+	font-size: 2em;
+	display: inline-block;
+}
+
+body .weather div span:last-child {
+	padding: 0;
+	float: right;
+	font-size: 1.2em;
+	padding-right: 20px;
+}
+
+body #quote {
+	grid-row: 4;
+	grid-column: 2;
+}
+
+body #quote > div {
+	opacity: 0.8;
+	margin-top: 10%;
+}
+
+body #quote > div a {
+	color: white;
+	display: block;
+}
+
+body #quote > div span {
+	display: block;
+	padding-top: 5px;
+}
+
+body .todos {
+	grid-row: 4;
+	grid-column: 3;
+	overflow: hidden;
+	/*overflow-y: scroll;*/
+}
+
+body .todos > div {
+	margin: 2px 0;
+	padding: 3px 5px;
+	overflow: hidden;
+	text-align: right;
+	text-overflow: ellipsis;
+	/*border-bottom: 1px lightgray solid;*/
+	background-color: rgba(255, 255, 255, 0.15);
+}
+
+body .todos > div:last-child {
+	border: none;
+}
+
+body .todos > div span {
+	font-size: .8em;
+	white-space: nowrap;
+}
+
+body .news {
+	grid-row: 4;
+	grid-column: 1;
+	overflow: hidden;
+	/*overflow-y: scroll;*/
+}
+
+body .news a {
+	width: 100%;
+	color: white;
+	padding: 5px;
+	margin: 2px 0;
+	display: block;
+	overflow: hidden;
+	position: relative;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	background-color: rgba(255, 255, 255, 0.15);
+}
+
+body .github {
+	grid-row: 1;
+	grid-column: 1;
+	text-align: left;
+
+}
+
+body .github i {
+	width: 100%;
+	padding: 5px;
+	display: block;
+	background-color: rgba(255, 255, 255, 0.15);
+}
+
+body #mic {
+	grid-row: 3;
+	display: flex;
+	grid-column: 2;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+body #mic button {
+	width: 40px;
+	height: 40px;
+	border: none;
+	padding: 5px;
+	cursor: pointer;
+	position: relative;
+	margin-bottom: 20px;
+	border-radius: 100%;
+	background-color: transparent;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+}
+
+body #mic button:before {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	content: ' ';
+	opacity: 0.2;
+	display: block;
+	position: absolute;
+	border-radius: 100%;
+	background-color: white;
+	transition: opacity .3s ease;
+}
+
+body #mic button:hover:before {
+	opacity: 0.5;
+}
+
+body #mic button img {
+	width: 100%;
+	height: 100%;
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<title>Dashboard</title>
+
+	<link href="Styles/main.css" rel="stylesheet" type="text/css" media="screen"/>
+
+	<script type="text/javascript" src="Scripts/skyIcons.js"></script>
+	<script type="text/javascript" src="Scripts/newsHandler.js"></script>
+	<script type="text/javascript" src="Scripts/notesHandler.js"></script>
+	<script type="text/javascript" src="Scripts/clockHandler.js"></script>
+	<script type="text/javascript" src="Scripts/quotesHandler.js"></script>
+	<script type="text/javascript" src="Scripts/githubHandler.js"></script>
+	<script type="text/javascript" src="Scripts/speechHandler.js"></script>
+	<script type="text/javascript" src="Scripts/weatherHandler.js"></script>
+	<script type="text/javascript">
+		function load() {
+			newsHandlerLoader();
+			notesHandlerLoader();
+			quotesHandlerLoader();
+			githubHandlerLoader();
+			speechHandlerLoader();
+			weatherHandlerLoader();
+			clockHandlerLoader('{{username}}');
+		}
+
+		window.onload = load;
+	</script>
+</head>
+<body>
+
+	<div class="box-item news"></div>
+	<div class="box-item todos"></div>
+	<div class="box-item github"></div>
+	<div class="box-item weather"></div>
+
+	<div id="clock"></div>
+	<div id="mic">
+		<button><img src="Assets/ic_mic_white.svg"></button>
+	</div>
+	<div id="quote"></div>
+
+</body>
+</html>
