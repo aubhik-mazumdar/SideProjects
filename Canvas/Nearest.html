@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<title>Nearest</title>
+
+	<script type="text/javascript" src="canvas.js"></script>
+	<script type="text/javascript">
+		const points = [];
+		const notActivePoints = [];
+
+		let cheatMode = false;
+		let selectedPoint = 0;
+		let nearestPoint = null;
+
+		function setup() {
+			canvas = new Canvas(document.getElementsByTagName('canvas')[0], 'auto', 'auto');
+			canvas.canvas.addEventListener('mousemove', mouse);
+
+			canvas.ctx.setLineDash([5, 15]);
+
+			for (let i = 0; i < 10; i++) {
+				points.push(new Point(Math.randomBetween(10, canvas.width - 10), Math.randomBetween(10, canvas.height - 10)));
+			}
+
+			points[0].deactivate();
+			nearestPoint = getNearestPoint(points[selectedPoint]);
+			canvas.canvas.addEventListener('click', evt => {
+				for (let i = 0; i < points.length; i++) {
+					if (points[i].clicked(evt.x, evt.y)) {
+						if (i == nearestPoint) {
+							selectedPoint = i;
+							points[i].deactivate();
+							nearestPoint = getNearestPoint(points[selectedPoint]);
+						} else {
+							noLoop();
+							canvas.text('You lost', center.x, center.y, 'red', 50);
+						}
+
+						break;
+					}
+				}
+			});
+		}
+
+		function draw() {
+			// noLoop();
+			canvas.background();
+			canvas.line(points[selectedPoint].x, points[selectedPoint].y, mouseX, mouseY, 5, 'blue', 'round');
+
+			points.forEach((object, key) => {
+				object.draw();
+			});
+
+			if (notActivePoints.length > 0) {
+				for (let i = 0; i < notActivePoints.length - 1; i++) {
+					canvas.line(
+						notActivePoints[i].x,
+						notActivePoints[i].y,
+						notActivePoints[i + 1].x,
+						notActivePoints[i + 1].y,
+						5, 'blue', 'round'
+					);
+				}
+			}
+
+			if (notActivePoints.length == points.length) {
+				noLoop();
+				canvas.text('You won', center.x, center.y, 'lightgreen', 50);
+			} else if (cheatMode) {
+				const dist = Global.Vector.dist(points[selectedPoint].x, points[selectedPoint].y, points[nearestPoint].x, points[nearestPoint].y);
+				canvas.circle(points[selectedPoint].x, points[selectedPoint].y, dist, 'white');
+			}
+		}
+
+		function getNearestPoint(point) {
+			let currentBestID;
+			let currentBestDist = Infinity;
+
+			for (let i = 0; i < points.length; i++) {
+				if (i != selectedPoint && points[i].active) {
+					const distance = Global.Vector.dist(point.x, point.y, points[i].x, points[i].y);
+
+					if (distance < currentBestDist) {
+						currentBestDist = distance;
+						currentBestID = i;
+					} else if (distance - currentBestDist < 2) {
+						noLoop();
+						alert('You should refresh the page...');
+					}
+				}
+			}
+
+			return currentBestID;
+		}
+
+		class Point {
+			constructor(x, y) {
+				this.x = x;
+				this.y = y;
+				this.r = 8;
+				this.active = true;
+				this.color = '#ffa500';
+			}
+
+			clicked(x, y) {
+				if (Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2)) <= this.r)
+					return true;
+				else
+					return false;
+			}
+
+			deactivate() {
+				this.active = false;
+				this.color = new Color(this.color).opacity(0.3).color;
+
+				notActivePoints.push(this);
+			}
+
+			draw() {
+				canvas.circle(this.x, this.y, this.r, this.color, true);
+			}
+		}
+	</script>
+
+</head>
+<body style="margin: 0; overflow: hidden; cursor: pointer;">
+
+	<canvas></canvas>
+
+</body>
+</html>
