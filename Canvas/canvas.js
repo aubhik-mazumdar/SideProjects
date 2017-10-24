@@ -1,27 +1,3 @@
-/*
-    MIT License
-
-    Copyright (c) 2017 Vic
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
- */
- 
 let int;
 let canvas;
 let mouseX = 0;
@@ -43,23 +19,18 @@ function load() {
 }
 
 function loop() {
-    function l() {
-        if (looping) {
-            draw();
-            frameCount++;
-            requestAnimationFrame(l);
-        }
-    }
 	if ((typeof draw).toLowerCase() == 'function') {
 		looping = true;
-
-    requestAnimationFrame(l);
-    }
+		int = setInterval(() => {
+			draw();
+			frameCount++;
+		}, 1000 / frameRate);
+	}
 }
 
 function noLoop() {
 	looping = false;
-// 	clearInterval(int);
+	clearInterval(int);
 }
 
 function preventLoop() {
@@ -91,11 +62,11 @@ class Canvas {
 
 		this.backgroundColor = '#616161';
 
-		if (w === '' || w === null) {
+		if (w == '' || w == null) {
 			w = 'auto';
 		}
 
-		if (h === '' || h === null) {
+		if (h == '' || h == null) {
 			h = 200;
 		}
 
@@ -108,8 +79,8 @@ class Canvas {
 	}
 
 	resize(w, h) {
-		h = (h == 'auto' || h === null || h === '') ? window.innerHeight : h;
-		w = (w == 'auto' || w === null || w === '') ? document.body.clientWidth : w; // window.innerWidth
+		h = (h == 'auto' || h == null || h == '') ? window.innerHeight : h;
+		w = (w == 'auto' || w == null || w == '') ? document.body.clientWidth : w; // window.innerWidth
 
 		this.width = w;
 		this.height = h;
@@ -143,10 +114,36 @@ class Canvas {
 	}
 
 	point(x, y, color) {
+		if (!color) {
+			color = 'rgb(255, 255, 255)';
+		}
+
+		if ((typeof color).toLowerCase() == 'object') {
+			this.ctx.fillStyle = color.color;
+			this.ctx.strokeStyle = color.color;
+		} else {
+			this.ctx.fillStyle = color;
+			this.ctx.strokeStyle = color;
+		}
+
 		return this.circle(x, y, 2, color, true);
 	}
 
-	circle(x, y, r, color, fill) {
+	points(arr, color) {
+		if (arr instanceof Array) {
+			arr.forEach((object, key) => {
+				if (object instanceof Vector)
+					this.point(object.x, object.y, color);
+				else if (object instanceof Array)
+					this.point(object[0], object[1], color);
+				else Error('Not an array');
+			});
+		} else Error("Not an array");
+
+		return this;
+	}
+
+	circle(x, y, r, color, fill, strokeWidth) {
 		if (!color) {
 			color = 'rgb(255, 255, 255)';
 		}
@@ -160,34 +157,59 @@ class Canvas {
 		}
 
 		this.ctx.beginPath();
+		this.ctx.lineWidth = strokeWidth;
 		this.ctx.arc(x, y, r, 0, 2 * Math.PI, false);
 
 		if (fill) this.ctx.fill();
 		else this.ctx.stroke();
+		this.ctx.closePath();
 
 		return this;
 	}
 
-	arc(x, y, r, deg, color, strokeWidth) {
+	arc(x, y, r, startDeg, endDeg, color, strokeWidth, lineCap) {
 		if (!color) {
 			color = 'rgb(0, 0, 255)';
 		}
 
-		if ((typeof color).toLowerCase() == 'object') {
+		if ((typeof color).toLowerCase() == 'object')
 			this.ctx.strokeStyle = color.color;
-		} else {
+		else
 			this.ctx.strokeStyle = color;
-		}
 
 		this.ctx.beginPath();
+		this.ctx.lineCap = lineCap;
 		this.ctx.lineWidth = strokeWidth;
-		this.ctx.arc(x, y, r, 1.5 * Math.PI, Math.toRadians(deg) - 1.5);
+		this.ctx.arc(x, y, r, startDeg, endDeg);
 		this.ctx.stroke();
 		return this;
 	}
 
-	arcTo(x, y, x2, y2, color, strokeWidth) {
-		const r = x2 - x;
+	// arc(x, y, r, deg, color, strokeWidth) {
+	// 	// Broken
+
+	// 	if (!color) {
+	// 		color = 'rgb(0, 0, 255)';
+	// 	}
+
+	// 	if ((typeof color).toLowerCase() == 'object') {
+	// 		this.ctx.strokeStyle = color.color;
+	// 	} else {
+	// 		this.ctx.strokeStyle = color;
+	// 	}
+
+	// 	this.ctx.beginPath();
+	// 	this.ctx.lineWidth = strokeWidth;
+	// 	this.ctx.arc(x, y, r, 1.5 * Math.PI, Math.toRadians(deg) - 1.5);
+	// 	this.ctx.stroke();
+	// 	return this;
+	// }
+
+	arcTo(x, y, x2, y2, color, strokeWidth, flip) {
+		const r = (Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2))) / 2;
+		// const rad = Math.toRadians(Math.cos(x2) * r);
+		const rad = 0;
+		const center = new Vector((x2 + x) / 2, (y2 + y) / 2);
 
 		if (!color) {
 			color = 'rgb(0, 0, 255)';
@@ -199,15 +221,19 @@ class Canvas {
 			this.ctx.strokeStyle = color;
 		}
 
-		this.ctx.beginPath();
 		this.ctx.lineWidth = strokeWidth;
-		console.log(x, y, r / 4, Math.PI, 2 * Math.PI);
-		this.ctx.arc(x, y, r / 4, Math.PI, 2 * Math.PI);
+		this.ctx.beginPath();
+
+		if (flip)
+			this.ctx.arc(center.x, center.y, r, (rad / 2) + Math.PI, (Math.PI + rad / 2) + Math.PI);
+		else
+			this.ctx.arc(center.x, center.y, r, rad / 2, Math.PI + rad / 2);
+
 		this.ctx.stroke();
 		return this;
 	}
 
-	line(x, y, x2, y2, strokeWidth, color) {
+	line(x, y, x2, y2, strokeWidth, color, lineCap) {
 		if (!color) {
 			color = 'rgb(0, 0, 255)';
 		}
@@ -219,6 +245,7 @@ class Canvas {
 		}
 
 		this.ctx.beginPath();
+		this.ctx.lineCap = lineCap;
 		this.ctx.strokeStyle = color;
 		this.ctx.lineWidth = strokeWidth;
 		this.ctx.moveTo(x, y);
@@ -234,6 +261,25 @@ class Canvas {
 		}
 
 		this.rect(x, y, r, r, color);
+		return this;
+	}
+
+	box(x, y, size, color, center) {
+		return this.square(x, y, size, color, center);
+	}
+
+	twoPointBox(x1, y1, x2, y2, color) {
+		if (!color) {
+			color = 'rgb(255, 0, 0)';
+		}
+
+		if ((typeof color).toLowerCase() == 'object') {
+			this.ctx.strokeStyle = color.color;
+		} else {
+			this.ctx.strokeStyle = color;
+		}
+
+		this.rect(x1, y1, x2 - x1, y2 - y1, color);
 		return this;
 	}
 
@@ -275,10 +321,6 @@ class Canvas {
 		return this;
 	}
 
-	box(x, y, size, color) {
-		return this.rect(x, y, size, size, color);
-	}
-
 	triangle(x, y, size, color, fill) {
 		const points = [-size + x, size / (10 / 6) + y, size + x, size / (10 / 6) + y, 0 + x, -size + y];
 
@@ -291,27 +333,7 @@ class Canvas {
 	}
 
 	polygon(points, color) {
-		// Allow vectors to be passed
-
-		if (!color) {
-			color = 'rgb(0, 0, 255)';
-		}
-
-		if ((typeof color).toLowerCase() == 'object') {
-			this.ctx.strokeStyle = color.color;
-		} else {
-			this.ctx.strokeStyle = color;
-		}
-
-		this.ctx.strokeStyle = color;
-
-		for (let i = 0; i < points.length - 2; i += 2) {
-			this.point(points[i], points[i + 1], color);
-			this.point(points[i + 2], points[i + 3], color);
-			this.line(points[i], points[i + 1], points[i + 2], points[i + 3], 1, color);
-		}
-
-		this.line(points[0], points[1], points[points.length - 2], points[points.length - 1], 1, color);
+		// Todo
 		return this;
 	}
 
@@ -377,20 +399,14 @@ class Canvas {
 		const c = width / Math.PI / (frequency * 2);
 
 		for(let i = 0; i < width; i += step){
-			this.ctx.lineTo(i, 250 + (amplitude * Math.sin(i / c)));
+			const val = amplitude * Math.sin(i / c);
+			this.ctx.lineTo(i + x, y + val);
 		}
 
 		this.ctx.strokeStyle = color;
 
 		this.ctx.stroke();
 		return this;
-	}
-
-	dist(x, y, x2, y2) {
-		const a = x - x2;
-		const b = y - y2;
-
-		return Math.sqrt(a * a + b * b);
 	}
 
 	background(color) {
@@ -408,14 +424,47 @@ class Canvas {
 		return this;
 	}
 
-	connect(points, strokeWidth, color) {
-		for (let i = 0; i < points.length - 1; i++) {
-			const one = points[i];
-			const two = points[i + 1];
-
-			this.line(one.x, one.y, two.x, two.y, strokeWidth, color);
+	connect(points, color, strokeWidth, lineCap) {
+		if (!color) {
+			color = 'rgb(0, 0, 255)';
 		}
 
+		if ((typeof color).toLowerCase() == 'object')
+			this.ctx.strokeStyle = color.color;
+		else
+			this.ctx.strokeStyle = color;
+
+		this.ctx.beginPath();
+
+		this.ctx.lineCap = lineCap;
+		this.ctx.lineWidth = strokeWidth;
+
+		if (points[0] instanceof Array)
+			this.ctx.moveTo(points[0][0], points[0][1]);
+		else if (points[0] instanceof Vector)
+			this.ctx.moveTo(points[0].x, points[0].y);
+		else if (points[0].x && points[0].y)
+			this.ctx.moveTo(points[0].x, points[0].y);
+		else
+			this.ctx.moveTo(points[0], points[1]);
+
+		if (points[0] instanceof Array || points[0] instanceof Vector || (points[0].x && points[0].y)) {
+			points.forEach((object, key) => {
+				if (object instanceof Array)
+					this.ctx.lineTo(object[0], object[1]);
+				else if (points[0] instanceof Vector || (points[0].x && points[0].y))
+					this.ctx.lineTo(object.x, object.y);
+			});
+		} else {
+			for (let i = 0; i < points.length; i += 2) {
+				this.ctx.lineTo(points[i], points[i + 1]);
+			}
+		}
+
+		this.ctx.fillStyle = color;
+
+		this.ctx.closePath();
+		this.ctx.stroke();
 		return this;
 	}
 
@@ -452,8 +501,8 @@ class Canvas {
 
 class Vector {
 	constructor(x, y) {
-		x = x === null ? 0 : x;
-		y = y === null ? 0 : y;
+		x = x == null ? 0 : x;
+		y = y == null ? 0 : y;
 
 		this.x = x;
 		this.y = y;
@@ -543,9 +592,15 @@ class Vector {
 	}
 
 	div(n) {
-		this.x /= n;
-		this.y /= n;
-		return this;
+		if (n instanceof Vector) {
+			this.x /= n.x;
+			this.y /= n.y;
+			return this;
+		} else {
+			this.x /= n;
+			this.y /= n;
+			return this;
+		}
 	}
 
 	limit(max) {
@@ -584,7 +639,17 @@ Global.Vector.add = function(v1, v2, target) {
 	}
 	target.add(v2);
 	return target;
-};
+}
+
+Global.Vector.div = function (v1, v2, target) {
+	if (!target)
+		target = v1.copy();
+	else
+		target.set(v1);
+
+	target.add(v2);
+	return target;
+}
 
 Global.Vector.sub = function(v1, v2, target) {
 	if (!target) {
@@ -595,12 +660,26 @@ Global.Vector.sub = function(v1, v2, target) {
 
 	target.sub(v2);
 	return target;
-};
+}
+
+Global.Vector.dist = function(x, y, x2, y2) {
+	if (x instanceof Vector && y instanceof Vector) {
+		const a = x.x - y.x;
+		const b = x.y - y.y;
+
+		return Math.sqrt(a * a + b * b);
+	} else {
+		const a = x - x2;
+		const b = y - y2;
+
+		return Math.sqrt(a * a + b * b);
+	}
+}
 
 Global.Vector.random2D = function() {
 	const angle = Math.random() * Math.PI * 2;
 	return new Vector(Math.cos(angle), Math.sin(angle));
-};
+}
 
 class Color {
 	constructor(...color) {
@@ -656,10 +735,6 @@ class Color {
 		throw new Error('Bad Hex');
 	}
 
-	toString() {
-		return this.color;
-	}
-
 	toObject() {
 		if (this.type == 'HEX') {
 			this.convertToRGB();
@@ -673,9 +748,9 @@ class Color {
 	opacity(opacity) {
 		const object = this.toObject();
 
-		object.a = opacity;
+		object['a'] = opacity;
 
-		this.color = `rgba(${object.r}, ${object.g}, ${object.b}, ${object.a})`;
+		this.color = `rgba(${object['r']}, ${object['g']}, ${object['b']}, ${object['a']})`;
 		return this;
 	}
 
@@ -698,7 +773,7 @@ Global.Color.random = function() {
 	}
 
 	return new Color(color);
-};
+}
 
 
 
@@ -712,16 +787,15 @@ Array.prototype.remove = function(search) {
 	});
 
 	return arr;
-};
-
+}
 
 Array.prototype.random = function() {
 	return this[Math.floor(Math.random() * this.length)];
-};
+}
 
 Number.prototype.map = function(start1, stop1, start2, stop2) {
 	return ((this - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
-};
+}
 
 Number.prototype.constrain = function(low, high) {
 	return Math.max(Math.min(this, high), low);
@@ -729,7 +803,7 @@ Number.prototype.constrain = function(low, high) {
 
 Math.randomBetween = function(min, max) {
 	return Math.random() * (max - min + 1) + min;
-};
+}
 
 Math.toRadians = function(degrees, pointUp) {
 	if (pointUp) return (degrees - 90) * Math.PI / 180;
@@ -741,6 +815,24 @@ Math.toDegrees = function(radians, pointUp) {
 	else return radians * 180 / Math.PI;
 };
 
+Math.randomPosInBox = function(x1, y1, x2, y2) {
+	const posX = Math.round(Math.randomBetween(x1, x2));
+	const posY = Math.round(Math.randomBetween(y1, y2));
+
+	return new Vector(posX, posY);
+};
+
+// var circle = {
+//     x: 100,
+//     y: 290,
+//     r: 10
+// };
+// var rect = {
+//     x: 100,
+//     y: 100,
+//     w: 40,
+//     h: 100
+// };
 Math.rectCircleColliding = function(circle, rect) {
 	const distX = Math.abs(circle.x - rect.x - rect.w / 2);
 	const distY = Math.abs(circle.y - rect.y - rect.h / 2);
@@ -754,14 +846,7 @@ Math.rectCircleColliding = function(circle, rect) {
 	const dx = distX - rect.w / 2;
 	const dy = distY - rect.h / 2;
 	return (dx * dx + dy * dy <= (circle.r * circle.r));
-};
-
-Math.circleCircleColliding = function(circle1, circle2) {
-	const dx = circle1.x - circle2.x;
-	const dy = circle1.y - circle2.y;
-	const distance = Math.sqrt(dx * dx + dy * dy);
-
-	return distance < circle1.r + circle2.r;
-};
+}
 
 window.onload = load;
+// window.onresize = resize;
