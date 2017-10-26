@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+	<title>Getting Started Extension's Popup</title>
+	<style type="text/css">
+	body {
+		margin: 10px;
+		white-space: nowrap;
+	}
+
+	h1 {
+		font-size: 15px;
+	}
+
+	#container {
+		align-items: center;
+		display: flex;
+		justify-content: space-between;
+	}
+</style>
+
+<script src="popup.js"></script>
+</head>
+
+<body>
+	<h1>Verander video snelheid</h1>
+	<label>Snelheid</label>
+	<br>
+	<input type="range" min="1" max="10" value="1.7" step="0.1">
+	<span id="speed">1.7</span>
+	<br><br>
+	<button>Verander!</button>
+</body>
+</html>
