@@ -93,7 +93,7 @@ module.exports = (progressFunction, fileLocation, url, app, fs, path) => {
 									console.error(err);
 									response.header(500).send('Something went wrong with reading the file');
 								} else {
-									data = data.replace(/require\((\"|\')progress(\"|\')\);/i, clientJsModule);
+									data = data.replace(/require\((\"|\')progress(\"|\')\);?/i, clientJsModule);
 									response.header({'Content-Type': 'text/html; charset=utf-8'}).send(data);
 								}
 							});
