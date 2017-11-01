@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<script type="text/javascript">
+		var evtSource = new EventSource("/progress");
+
+		console.log(evtSource);
+
+		evtSource.onmessage = function(e) {
+			var newElement = document.createElement("li");
+
+			try {
+				if (JSON.parse(e.data).done) {
+					evtSource.close();
+				} else {
+					console.log(JSON.parse(e.data));
+				}
+			} catch (err) {
+				console.log(err);
+			}
+
+			newElement.innerHTML = "message: " + e.data;
+			document.body.appendChild(newElement);
+		}
+	</script>
+
+</head>
+<body>
+
+</body>
+</html>
