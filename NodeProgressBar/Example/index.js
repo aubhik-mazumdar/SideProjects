@@ -32,7 +32,7 @@
 
 
 
-const Progress = require('./Progress.js');
+const Progress = require('Progress');
 const Express = require('express');
 const app = Express();
 
@@ -49,7 +49,7 @@ const ProgressHandler = Progress(p => {
 			i++;
 		}
 	}, 1000);
-}, __dirname + '/main.html', '*', app);
+}, __dirname + '/index.html', '*', app);
 
 app.listen(8000, err => {
 	if (err)
