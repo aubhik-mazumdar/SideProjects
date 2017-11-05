@@ -14,6 +14,7 @@ The imported *Progress* object is a function, so you need to call it. It require
 - **fileLocation**: The path of the file that handles the client side progress event. *Progress* automatically creates a server get handler for this file.
 - **url**: The URL that the user has to type into the address bar. This is the same as you would put into `app.get`
 - **app**: The *Express* function
+- **progressLocation**: The location that you have to go to to receive the progress values. Defaults to *progress*.
 
 You can also pass *fs*, and *path* (in that order) after the required arguments.
 

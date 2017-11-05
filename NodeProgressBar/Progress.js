@@ -18,14 +18,24 @@ class Progress {
 		this.progress = this.sendProgress;
 	}
 
-	closeConnection() {
-		this.constructSSE(this._response, this._id, `{"done": true, "progress": ${this.progress}}`);
+	closeConnection(moreData) {
+		const json = {done: true, progress: this.progress};
+
+		if (moreData.constructor == {}.constructor)
+			json.data = moreData;
+
+		this.constructSSE(this._response, this._id, JSON.stringify(json));
 		this._response.end();
 	}
 
-	sendProgress(percentage) {
+	sendProgress(percentage, moreData) {
+		const json = {done: false, progress: percentage};
+
+		if (moreData.constructor == {}.constructor)
+			json.data = moreData;
+
 		this.progress = percentage;
-		this.constructSSE(this._response, this._id, `{"done": false, "progress": ${percentage}}`);
+		this.constructSSE(this._response, this._id, JSON.stringify(json));
 	}
 
 	constructSSE(response, id, data) {
@@ -34,7 +44,7 @@ class Progress {
 	}
 }
 
-module.exports = (progressFunction, fileLocation, url, app, fs, path, progressLocation) => {
+module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs, path) => {
 	const clientJsModule = require('./clientJs.js');
 
 	fs = fs || require('fs');
