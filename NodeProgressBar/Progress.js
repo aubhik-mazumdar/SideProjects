@@ -21,8 +21,10 @@ class Progress {
 	closeConnection(moreData) {
 		const json = {done: true, progress: this.progress};
 
-		if (moreData.constructor == {}.constructor)
-			json.data = moreData;
+		if (moreData) {
+			if (moreData.constructor == {}.constructor)
+				json.data = moreData;
+		}
 
 		this.constructSSE(this._response, this._id, JSON.stringify(json));
 		this._response.end();
@@ -31,8 +33,10 @@ class Progress {
 	sendProgress(percentage, moreData) {
 		const json = {done: false, progress: percentage};
 
-		if (moreData.constructor == {}.constructor)
-			json.data = moreData;
+		if (moreData) {
+			if (moreData.constructor == {}.constructor)
+				json.data = moreData;
+		}
 
 		this.progress = percentage;
 		this.constructSSE(this._response, this._id, JSON.stringify(json));
