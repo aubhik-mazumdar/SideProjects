@@ -32,7 +32,7 @@
 
 
 
-const Progress = require('Progress');
+const Progress = require('express-progressbar');
 const Express = require('express');
 const app = Express();
 
