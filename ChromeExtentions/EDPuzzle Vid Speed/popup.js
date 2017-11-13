@@ -1,10 +1,12 @@
+const browserClient = chrome || browser;
+
 function getCurrentTabUrl(callback) {
 	const queryInfo = {
 		active: true,
 		currentWindow: true
 	};
 
-	chrome.tabs.query(queryInfo, (tabs) => {
+	browserClient.tabs.query(queryInfo, (tabs) => {
 		const tab = tabs[0];
 		const url = tab.url;
 
@@ -14,7 +16,7 @@ function getCurrentTabUrl(callback) {
 }
 
 function executeScript(string) {
-	chrome.tabs.executeScript({
+	browserClient.tabs.executeScript({
 		code: string
 	});
 }
