@@ -16,7 +16,7 @@ const ProgressHandler = Progress(p => {
 			i++;
 		}
 	}, 1000);
-}, __dirname + '/index.html', '*', app, 'WebURL');
+}, __dirname + '/index.html', '*', app, 'WebURL', /*fs, path*/);
 
 app.listen(8000, err => {
 	if (err)

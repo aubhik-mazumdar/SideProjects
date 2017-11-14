@@ -2,9 +2,9 @@
 
 class Progress {
 	constructor(response) {
-		this.progress = 0;
+		this._progress = 0;
 		this._response = response;
-		this._id = (new Date()).toLocaleTimeString();
+		this._id = (new Date()).toLocaleTimeString() + '-' + randomString(5);
 
 		response.header({
 			"Cache-Control": "no-cache",
@@ -13,13 +13,22 @@ class Progress {
 
 		this.end = this.closeConnection;
 		this.close = this.closeConnection;
-
 		this.update = this.sendProgress;
-		this.progress = this.sendProgress;
+
+		function randomString(length) {
+			let newStr = '';
+			const chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+			for (let i = 0; i < length; i++) {
+				newStr += chars[Math.floor(Math.random() * chars.length)];
+			}
+
+			return newStr;
+		}
 	}
 
 	closeConnection(moreData) {
-		const json = {done: true, progress: this.progress};
+		const json = {done: true, progress: this._progress};
 
 		if (moreData) {
 			if (moreData.constructor == {}.constructor)
@@ -38,7 +47,7 @@ class Progress {
 				json.data = moreData;
 		}
 
-		this.progress = percentage;
+		this._progress = percentage;
 		this.constructSSE(this._response, this._id, JSON.stringify(json));
 	}
 
@@ -57,7 +66,7 @@ module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs
 	if (path.extname(fileLocation) == '.html') {
 		if (progressFunction instanceof Function) {
 			if (progressFunction && fileLocation && app) {
-				progressLocation = progressLocation || '*progress*';
+				progressLocation = progressLocation || 'progress';
 
 				app.get(`*${progressLocation}*`, (request, response) => {
 					progressFunction(new Progress(response));

@@ -5,16 +5,21 @@
 	<script type="text/javascript">
 		const progress = require('Progress');
 
-		const progFunc = progress(evt => {
+		const evtSource = progress(evt => {
 			console.log(evt);
 			document.body.innerHTML += 'Progress: ' + evt.progress + '<br>';
-		}).onopen = evt => {
-			console.log(evt);
+		});
+
+		evtSource.onopen = evt => {
+			console.log('Opened', evt);
 		}
 
-		progFunc.onerror = evt => {
+		evtSource.onerror = evt => {
 			console.log('Error Event!', evt);
 		}
+
+		// Close connection:
+		// evtSource.close();
 	</script>
 
 </head>
