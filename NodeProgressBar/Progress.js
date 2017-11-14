@@ -58,7 +58,6 @@ module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs
 		if (progressFunction instanceof Function) {
 			if (progressFunction && fileLocation && app) {
 				progressLocation = progressLocation || '*progress*';
-				clientJsModule = clientJsModule.replace('{{progressLocation}}', progressLocation);
 
 				app.get(progressLocation, (request, response) => {
 					progressFunction(new Progress(response));
@@ -72,7 +71,7 @@ module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs
 									console.error(err);
 									response.header(500).send('Something went wrong with reading the file');
 								} else {
-									data = data.replace(/require\((\"|\')progress(\"|\')\);?/i, clientJsModule);
+									data = data.replace(/require\((\"|\')progress(\"|\')\);?/i, clientJsModule.replace('{{progressLocation}}', progressLocation));
 									response.header({'Content-Type': 'text/html; charset=utf-8'}).send(data);
 								}
 							});
