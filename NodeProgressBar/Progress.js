@@ -59,7 +59,7 @@ module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs
 			if (progressFunction && fileLocation && app) {
 				progressLocation = progressLocation || '*progress*';
 
-				app.get(progressLocation, (request, response) => {
+				app.get(`*${progressLocation}*`, (request, response) => {
 					progressFunction(new Progress(response));
 				});
 
