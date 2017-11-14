@@ -1,8 +1,6 @@
 module.exports = `function(func) {
 	var evtSource = new EventSource("/progress");
 
-	console.log(evtSource);
-
 	evtSource.onmessage = function(e) {
 		try {
 			if (JSON.parse(e.data).done)

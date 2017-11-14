@@ -11,6 +11,7 @@ The imported *Progress* object is a function, so you need to call it. It require
 - **progressFunction**: This function handles sending and stopping the progress. Its argument is a class:
 	- **update**: The function sends a message to the client.
 	- **end**: Closes the connection.
+	** You can also send more data into these functions as a second argument.**
 - **fileLocation**: The path of the file that handles the client side progress event. *Progress* automatically creates a server get handler for this file.
 - **url**: The URL that the user has to type into the address bar. This is the same as you would put into `app.get`
 - **app**: The *Express* function

@@ -6,12 +6,13 @@ const ProgressHandler = Progress(p => {
 	let i = 0;
 
 	const int = setInterval(() => {
-		console.log(i);
 		if (i > 10) {
 			p.close();
 			clearInterval(int);
 		} else {
-			p.update(i / 10 * 100);
+			p.update(i / 10 * 100, {
+				isCool: true
+			});
 			i++;
 		}
 	}, 1000);
