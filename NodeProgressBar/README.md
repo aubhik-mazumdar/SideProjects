@@ -25,6 +25,6 @@ The client file can now require *Progress* like this:
 const Progress = require('Progress');
 ```
 
-The passed object is a function that gets called when the server sends a progress event.
+The passed object is a function that gets called when the server sends a progress event. This function also returns the EventSource.
 
 Take a look at the example files in this folder.

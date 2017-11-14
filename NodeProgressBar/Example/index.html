@@ -3,12 +3,18 @@
 <head>
 
 	<script type="text/javascript">
-		const Progress = require('Progress');
+		const progress = require('Progress');
 
-		Progress(evt => {
+		const progFunc = progress(evt => {
 			console.log(evt);
 			document.body.innerHTML += 'Progress: ' + evt.progress + '<br>';
-		});
+		}).onopen = evt => {
+			console.log(evt);
+		}
+
+		progFunc.onerror = evt => {
+			console.log('Error Event!', evt);
+		}
 	</script>
 
 </head>

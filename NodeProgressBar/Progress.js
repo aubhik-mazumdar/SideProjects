@@ -58,6 +58,7 @@ module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs
 		if (progressFunction instanceof Function) {
 			if (progressFunction && fileLocation && app) {
 				progressLocation = progressLocation || '*progress*';
+				clientJsModule = clientJsModule.replace('{{progressLocation}}', progressLocation);
 
 				app.get(progressLocation, (request, response) => {
 					progressFunction(new Progress(response));
