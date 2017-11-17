@@ -25,19 +25,46 @@ if (isset($_GET["name"]) && isset($_GET["score"])) {
 			if ((int)$score < $global_score) {
 				$txt = generateNewString($global_score, $global_name, $fileContents, $CSVScores, $i, $arraySizeLimit);
 				file_put_contents($fileName, $txt) or die('{"success": false}');
-				echo '{"success": "true", "highscore": "true"}';
+				$scores = getScores();
+	
+				if (isset($scores)) {
+					echo '{"success": "true", "highscore": "true", "scoresCSV":"' . $scores . '"}';
+				} else {
+					echo '{"success": "true", "highscore": "true"}';
+				}
+				
 				fclose($scoreFile);
 				exit();
 			}
 		}
 	}
-	echo '{"success": "true", "highscore": "false"}';
+	
+	$scores = getScores();
+	
+	if (isset($scores)) {
+		echo '{"success": "true", "highscore": "false", "scoresCSV":"' . $scores . '"}';
+	} else {
+		echo '{"success": "true", "highscore": "false"}';
+	}
 	fclose($scoreFile);
 } else {
-	$scoreFile = fopen($fileName, "r") or die('{"success": false}');
+	$scores = getScores();
+	
+	if (isset($scores)) {
+		echo '{"success": "true", "scoresCSV":"' . $scores . '"}';
+	} else {
+		echo '{"success": "false"}';
+	}
+}
+
+function getScores($scoreFile) {
+	if (!isset($scoreFile)) {
+		$scoreFile = fopen($fileName, "r") or return; /* die('{"success": false}'); */
+	}
+	
 	$fileContents = fread($scoreFile, filesize($fileName));
-	echo '{"success": "true", "scoresCSV":"' . str_replace("\n", "\\n", $fileContents) . '"}';
 	fclose($scoreFile);
+	return str_replace("\n", "\\n", $fileContents);
 }
 
 function generateNewString($score, $username, $fileContents, $array, $index, $arraySizeLimit) {
