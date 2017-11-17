@@ -322,14 +322,19 @@ body {
     }
 
     function updateInterface(params) {
-        let xhr = new XMLHttpRequest();
+        var xhr = new XMLHttpRequest();
         xhr.open('get', 'scores.php'+(params||""), true);
         xhr.responseType = 'json';
-        if (!params) {
+        
+//         if (!params) {
             xhr.onload = function() {
                 if (xhr.status == 200) {
-                    let scoreboard = xhr.response.scoresCSV.split('\n');
-                    let result = "<tr><th><b>name</b></th><th><b>score</b></th></tr>";
+                    var success = xhr.response.success;
+                    var scoreboard = xhr.response.scoresCSV.split('\n');
+                    var result = "<tr><th><b>name</b></th><th><b>score</b></th></tr>";
+                    
+                    if (!success) alert("Something went wrong updating your score.");
+                    
                     for (let i = 0; i < Math.min(scoreboard.length-1,5); i++) {
                         let split = scoreboard[i].split(",");
                         result+="<tr><td>"+split[0]+"</th><td>"+split[1]+"</td></tr>";
@@ -338,12 +343,11 @@ body {
                     document.getElementById("highscores").innerHTML = result;
                 }
             };
-        }
-        else {
+        /*} else {
             xhr.onload = function(){
                 updateInterface();
             };
-        }
+        }*/
         xhr.send();
     }
 </script>
