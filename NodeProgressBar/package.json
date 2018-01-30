@@ -1,6 +1,6 @@
 {
   "name": "express-progressbar",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Simple progress bar",
   "main": "Progress.js",
   "scripts": {

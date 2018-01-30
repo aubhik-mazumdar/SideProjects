@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
+</head>
+<body>
 
+	<progress id="progressbar" value="0" min="0" max="100">Progress not supported</progress>
+	<br>
 	<script type="text/javascript">
 		const progress = require('Progress');
 
 		const evtSource = progress(evt => {
 			console.log(evt);
-			document.body.innerHTML += 'Progress: ' + evt.progress + '<br>';
+			document.getElementById('progressbar').value = evt.progress;
+			document.body.innerHTML += 'Progress: ' + evt.progress + '%<br>';
 		});
 
 		evtSource.onopen = evt => {
@@ -21,9 +26,6 @@
 		// Close connection:
 		// evtSource.close();
 	</script>
-
-</head>
-<body>
 
 </body>
 </html>

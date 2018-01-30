@@ -69,7 +69,7 @@ module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs
 				progressLocation = progressLocation || 'progress';
 
 				app.get(`*${progressLocation}*`, (request, response) => {
-					progressFunction(new Progress(response));
+					progressFunction(new Progress(response), request, response);
 				});
 
 				app.get(url, (request, response) => {
@@ -90,4 +90,6 @@ module.exports = (progressFunction, fileLocation, url, app, progressLocation, fs
 			} else console.error('Missing parameters');
 		} else console.error('Progress function missing');
 	} else console.error('Specified file is not an HTML-file');
+
+	return app;
 }
