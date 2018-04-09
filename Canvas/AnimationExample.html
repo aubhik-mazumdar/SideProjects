@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<script type="text/javascript" src="canvas.js"></script>
+	<script type="text/javascript">
+		let doingAnimation = false;
+		const pos = {};
+
+		Object.prototype.random = function () {
+			const keys = Object.keys(this);
+
+			return this[keys[Math.floor(Math.random() * keys.length)]];
+		}
+
+		function setup() {
+			canvas = new Canvas(document.getElementsByTagName('canvas')[0], 'auto', 'auto');
+			canvas.canvas.addEventListener('click', evt => {
+				if (!doingAnimation) {
+					loop();
+
+					doingAnimation = true;
+					new Animation(pos, {
+						x: evt.offsetX,
+						y: evt.offsetY
+					}, Math.randomBetween(500, 2000), Animation.easings.random(), () => {
+						doingAnimation = false;
+						noLoop();
+					});
+				}
+			});
+
+			pos.x = center.x;
+			pos.y = center.y;
+
+			preventLoop();
+			draw();
+		}
+
+		function draw() {
+			canvas.background();
+			canvas.circle(pos.x, pos.y, 10, 'mediumspringgreen', true);
+		}
+	</script>
+
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+	<canvas></canvas>
+
+</body>
+
+</html>

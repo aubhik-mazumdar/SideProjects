@@ -6,8 +6,10 @@ let frameRate = 60;
 let frameCount = 0;
 let looping = false;
 let shouldLoop = true;
-let center = {x: 0, y: 0};
-const Global = {Vector: {}, Color: {}};
+let center = { x: 0, y: 0 };
+
+const Global = { Vector: {}, Color: {} };
+const _animations = [];
 
 function load() {
 	setup();
@@ -24,6 +26,10 @@ function loop() {
 		int = setInterval(() => {
 			draw();
 			frameCount++;
+
+			_animations.forEach((obj, key) => {
+				obj._update();
+			});
 		}, 1000 / frameRate);
 	}
 }
@@ -71,7 +77,7 @@ class Canvas {
 	constructor(canvas, w, h) {
 		this.canvas = canvas;
 		this.ctx = canvas.getContext('2d');
-		this.origionalWidthAndHeight = {w: w, h: h};
+		this.origionalWidthAndHeight = { w: w, h: h };
 
 		this.backgroundColor = '#616161';
 
@@ -411,7 +417,7 @@ class Canvas {
 
 		const c = width / Math.PI / (frequency * 2);
 
-		for(let i = 0; i < width; i += step){
+		for (let i = 0; i < width; i += step) {
 			const val = amplitude * Math.sin(i / c);
 			this.ctx.lineTo(i + x, y + val);
 		}
@@ -619,11 +625,11 @@ class Vector {
 	limit(max) {
 		const mSq = this.magSq();
 
-		if(mSq > max * max) {
-	    	this.div(Math.sqrt(mSq)); //normalize it
-	    	this.mult(max);
-	    }
-	    return this;
+		if (mSq > max * max) {
+			this.div(Math.sqrt(mSq)); //normalize it
+			this.mult(max);
+		}
+		return this;
 	}
 
 	mag() {
@@ -644,7 +650,7 @@ class Vector {
 	}
 }
 
-Global.Vector.add = function(v1, v2, target) {
+Global.Vector.add = function (v1, v2, target) {
 	if (!target) {
 		target = v1.copy();
 	} else {
@@ -664,7 +670,7 @@ Global.Vector.div = function (v1, v2, target) {
 	return target;
 }
 
-Global.Vector.sub = function(v1, v2, target) {
+Global.Vector.sub = function (v1, v2, target) {
 	if (!target) {
 		target = v1.copy();
 	} else {
@@ -675,7 +681,7 @@ Global.Vector.sub = function(v1, v2, target) {
 	return target;
 }
 
-Global.Vector.dist = function(x, y, x2, y2) {
+Global.Vector.dist = function (x, y, x2, y2) {
 	if (x instanceof Vector && y instanceof Vector) {
 		const a = x.x - y.x;
 		const b = x.y - y.y;
@@ -689,7 +695,7 @@ Global.Vector.dist = function(x, y, x2, y2) {
 	}
 }
 
-Global.Vector.random2D = function() {
+Global.Vector.random2D = function () {
 	const angle = Math.random() * Math.PI * 2;
 	return new Vector(Math.cos(angle), Math.sin(angle));
 }
@@ -731,17 +737,17 @@ class Color {
 		let c;
 		const hex = this.color;
 
-		if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+		if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
 			c = hex.substring(1).split('');
 
-			if(c.length == 3){
+			if (c.length == 3) {
 				c = [c[0], c[0], c[1], c[1], c[2], c[2]];
 			}
 
 			c = '0x' + c.join('');
 
 			this.type = 'RGB';
-			this.color = 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
+			this.color = 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',1)';
 			return this;
 		}
 
@@ -755,7 +761,7 @@ class Color {
 
 		const result = this.color.match(/^rgba?\((\d+),\s?(\d+),\s?(\d+)(,\s?(.*))?\)$/);
 
-		return {r: result[1], g: result[2], b: result[3], a: result[5]};
+		return { r: result[1], g: result[2], b: result[3], a: result[5] };
 	}
 
 	opacity(opacity) {
@@ -777,20 +783,91 @@ class Color {
 	}
 }
 
-Global.Color.random = function() {
+Global.Color.random = function () {
 	let color = '#';
 	const letters = '0123456789ABCDEF';
 
-	for (var i = 0; i < 6; i++ ) {
+	for (var i = 0; i < 6; i++) {
 		color += letters[Math.floor(Math.random() * 16)];
 	}
 
 	return new Color(color);
 }
 
+class Animation {
+	constructor(obj, endVals, duration, easing, cb) {
+		this.easing = easing || Animation.easings.linear;
+		this.startVals = Object.assign({}, obj);
+		this.duration = duration;
+		this.deltas = {};
+		this.obj = obj;
+		this.time = 0;
+
+		for (let key in endVals)
+			this.deltas[key] = endVals[key] - obj[key];
+
+		if ((typeof cb).toLowerCase() == 'function')
+			this.cb = cb;
+
+		_animations.push(this);
+	}
+
+	_update() {
+		this.time += 60;
+		const t = this.time / this.duration;
+
+		if (t > 1) {
+			this._fraction(1);
+			_animations.splice(_animations.indexOf(this), 1);
+
+			if (this.cb)
+				this.cb(this);
+		} else {
+			this._fraction(this.easing(t));
+		}
+	}
+
+	_fraction(t) {
+		for (let key in this.deltas) {
+			this.obj[key] = this.startVals[key] + t * this.deltas[key];
+		}
+	}
+}
+
+// Great thank you to https://gist.github.com/gre/1650294
+Animation.easings = Object.freeze({
+	// no easing, no acceleration
+	linear: function (t) { return t },
+	// accelerating from zero velocity
+	easeInQuad: function (t) { return t * t },
+	// decelerating to zero velocity
+	easeOutQuad: function (t) { return t * (2 - t) },
+	// acceleration until halfway, then deceleration
+	easeInOutQuad: function (t) { return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t },
+	// accelerating from zero velocity
+	easeInCubic: function (t) { return t * t * t },
+	// decelerating to zero velocity
+	easeOutCubic: function (t) { return (--t) * t * t + 1 },
+	// acceleration until halfway, then deceleration
+	easeInOutCubic: function (t) { return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1 },
+	// accelerating from zero velocity
+	easeInQuart: function (t) { return t * t * t * t },
+	// decelerating to zero velocity
+	easeOutQuart: function (t) { return 1 - (--t) * t * t * t },
+	// acceleration until halfway, then deceleration
+	easeInOutQuart: function (t) { return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t },
+	// accelerating from zero velocity
+	easeInQuint: function (t) { return t * t * t * t * t },
+	// decelerating to zero velocity
+	easeOutQuint: function (t) { return 1 + (--t) * t * t * t * t },
+	// acceleration until halfway, then deceleration
+	easeInOutQuint: function (t) { return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t }
+});
 
 
-Array.prototype.remove = function(search) {
+
+
+Array.prototype.remove = function (search) {
 	const arr = this;
 
 	arr.forEach((object, key) => {
@@ -802,33 +879,33 @@ Array.prototype.remove = function(search) {
 	return arr;
 }
 
-Array.prototype.random = function() {
+Array.prototype.random = function () {
 	return this[Math.floor(Math.random() * this.length)];
 }
 
-Number.prototype.map = function(start1, stop1, start2, stop2) {
+Number.prototype.map = function (start1, stop1, start2, stop2) {
 	return ((this - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 }
 
-Number.prototype.constrain = function(low, high) {
+Number.prototype.constrain = function (low, high) {
 	return Math.max(Math.min(this, high), low);
 };
 
-Math.randomBetween = function(min, max) {
+Math.randomBetween = function (min, max) {
 	return Math.random() * (max - min + 1) + min;
 }
 
-Math.toRadians = function(degrees, pointUp) {
+Math.toRadians = function (degrees, pointUp) {
 	if (pointUp) return (degrees - 90) * Math.PI / 180;
 	else return degrees * Math.PI / 180;
 };
 
-Math.toDegrees = function(radians, pointUp) {
+Math.toDegrees = function (radians, pointUp) {
 	if (pointUp) return (radians * 180 / Math.PI) - 90;
 	else return radians * 180 / Math.PI;
 };
 
-Math.randomPosInBox = function(x1, y1, x2, y2) {
+Math.randomPosInBox = function (x1, y1, x2, y2) {
 	const posX = Math.round(Math.randomBetween(x1, x2));
 	const posY = Math.round(Math.randomBetween(y1, y2));
 
@@ -846,7 +923,7 @@ Math.randomPosInBox = function(x1, y1, x2, y2) {
 //     w: 40,
 //     h: 100
 // };
-Math.rectCircleColliding = function(circle, rect) {
+Math.rectCircleColliding = function (circle, rect) {
 	const distX = Math.abs(circle.x - rect.x - rect.w / 2);
 	const distY = Math.abs(circle.y - rect.y - rect.h / 2);
 

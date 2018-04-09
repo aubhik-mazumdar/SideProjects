@@ -54,7 +54,6 @@
 				noLoop();
 				return;
 
-
 				orbs.forEach((object, key) => {
 					object.y = canvas.height;
 				});
@@ -92,7 +91,6 @@
 		class Orb {
 			constructor(color, x) {
 				this.x = x;
-				this.animation;
 				this.r = orbRadius;
 				this.color = color;
 				this.y = canvas.height;
@@ -104,56 +102,12 @@
 
 			update() {
 				this.y -= 1.5;
-
-				if (this.animation) {
-					if (this.animation.kill)
-						this.animation = null;
-					else
-						this.animation.update();
-				}
 			}
 
 			animate(endX) {
 				return new Promise((resolve, reject) => {
-					this.animation = new Animation(this.x, endX, 2000, this, resolve);
+					new Animation(this, { x: endX }, 2000, Animation.easings.easeInOutQuad, resolve);
 				});
-			}
-		}
-
-		class Animation {
-			constructor(startX, endX, duration, obj, cb) {
-				this.deltaX = endX - startX;
-				this.duration = duration;
-				this.startX = startX;
-				this.kill = false;
-				this.obj = obj;
-				this.time = 0;
-
-				if ((typeof cb).toLowerCase() == 'function')
-					this.cb = cb;
-			}
-
-			update() {
-				this.time += 60;
-				const t = this.time / this.duration;
-
-				if (t > 1) {
-					this.kill = true;
-					this._fraction(1);
-
-					if (this.cb)
-						this.cb(this);
-				} else {
-					this._fraction(this._easing(t));
-				}
-			}
-
-			_easing(percent) {
-				return (percent < 0.5) ? (2 * percent * percent) : (-1 + (4 - 2 * percent) * percent);
-			}
-
-			_fraction(t) {
-				this.obj.x = this.startX + t * this.deltaX;
 			}
 		}
 
