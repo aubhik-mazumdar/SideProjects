@@ -3,14 +3,11 @@
 
 <head>
 
-	<script type="text/javascript" src="Canvas/canvas.js"></script>
+	<script type="text/javascript" src="canvas.js"></script>
 	<script type="text/javascript">
-		const colors = ['#5062D4', '#A84ED4', '#4DD55F', '#CAA940', '#12CBC4', '#EE5A24'];
-		const dots = ['UNTIL HERE'];
+		const colors = ["#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#16a085", "#27ae60", "#2980b9", "#8e44ad", "#f1c40f", "#e67e22", "#e74c3c", "#ecf0f1", "#95a5a6", "#f39c12", "#d35400", "#c0392b", "#bdc3c7", "#7f8c8d"];
 		const orbRadius = 10;
 		const orbs = [];
-
-		let newLoop = false;
 
 		Array.prototype.swap = function (indexOne, indexTwo) {
 			const array = this;
@@ -22,66 +19,73 @@
 
 		function setup() {
 			canvas = new Canvas(document.getElementsByTagName('canvas')[0], 'auto', 'auto');
-			canvas.background('black');
 
-			addResizeListener();
+			addResizeListener(evt => {
+				orbs.length = 0;
+				handleSetup();
+			});
+
+			if (window.location.hash != null && window.location.hash.indexOf('max=') > -1) {
+				const val = Number(window.location.hash.replace('#', '').split('=')[1]);
+
+				colors.splice((val > 1) ? val : 2);
+			} else alert('Add "#max=NUMBER" to the end of the URL to specify the amount of lines displayed');
+
+			handleSetup();
+		}
+
+		function handleSetup() {
+			canvas.background('#2f3542');
 
 			const padding = 20;
-			const startPoint = center.x - ((colors.length / 2) * (orbRadius * 2 + padding));
+			const maxOrbs = Math.floor(canvas.width / (orbRadius * 2 + padding));
+			const width = ((orbRadius + padding + colors.length * (orbRadius * 2 + padding)));
+			const marginLeft = (maxOrbs <= colors.length) ? 0 : (center.x - width / 2);
 
-			colors.forEach((object, key) => {
-				orbs.push(new Orb(object, startPoint + key * (orbRadius * 2 + padding)));
+			colors.slice(0, maxOrbs).forEach((object, key) => {
+				orbs.push(new Orb(object, marginLeft + orbRadius + padding + key * (orbRadius * 2 + padding)));
 			});
+
+			setTimeout(newSwap, 100);
 		}
 
 		function draw() {
-			canvas.background('black');
-
 			if (orbs.some(obj => obj.y + obj.r < 0)) {
-				// noLoop();
+				noLoop();
+				return;
+
+
 				orbs.forEach((object, key) => {
 					object.y = canvas.height;
 				});
 
-				// dots.length = 0;
-				dots.push('UNTIL HERE');
-				newLoop = true;
+				canvas.background('black');
 				return;
-			}
-
-			if (newLoop) {
-				dots.shift();
-
-				if (dots[0] == 'UNTIL HERE')
-					newLoop = false;
 			}
 
 			orbs.forEach((object, key) => {
 				object.update();
 				object.show();
 			});
-
-			dots.forEach((object, key) => {
-				canvas.point(object.x, object.y, object.color);
-			});
-
-			if (frameCount / 60 * 1000 % 800 == 0)
-				newSwap();
 		}
 
 		function newSwap() {
-			const pickedIndex = Math.floor(Math.random() * (orbs.length - 1));
+			const pickedIndex = Math.floor(Math.random() * orbs.length);
 			let secondOrb;
 
 			// Select left or right randomly
 			const randomNum = Math.random();
 
-			if (pickedIndex == 0 || randomNum < 0.5)
+			if (pickedIndex == 0)
 				newIndex = pickedIndex + 1;
-			else if (pickedIndex == orbs.length - 1 || randomNum > 0.5)
+			else if (pickedIndex == orbs.length - 1)
+				newIndex = pickedIndex - 1;
+			else if (randomNum < 0.5)
+				newIndex = pickedIndex + 1;
+			else if (randomNum >= 0.5)
 				newIndex = pickedIndex - 1;
 
-			Orb.swap(orbs[pickedIndex], orbs[newIndex]);
+			Orb.swap(orbs[pickedIndex], orbs[newIndex], newSwap);
 			orbs.swap(pickedIndex, newIndex);
 		}
 
@@ -107,29 +111,26 @@
 					else
 						this.animation.update();
 				}
-
-				if (frameCount % 10 == 0) { // 20 - 10
-					dots.push({
-						x: this.x,
-						y: this.y,
-						color: this.color
-					});
-				}
 			}
 
 			animate(endX) {
-				this.animation = new Animation(this.x, endX, 2000, this);
+				return new Promise((resolve, reject) => {
+					this.animation = new Animation(this.x, endX, 2000, this, resolve);
+				});
 			}
 		}
 
 		class Animation {
-			constructor(startX, endX, duration, obj) {
+			constructor(startX, endX, duration, obj, cb) {
 				this.deltaX = endX - startX;
 				this.duration = duration;
 				this.startX = startX;
 				this.kill = false;
 				this.obj = obj;
 				this.time = 0;
+
+				if ((typeof cb).toLowerCase() == 'function')
+					this.cb = cb;
 			}
 
 			update() {
@@ -139,14 +140,15 @@
 				if (t > 1) {
 					this.kill = true;
 					this._fraction(1);
+
+					if (this.cb)
+						this.cb(this);
 				} else {
 					this._fraction(this._easing(t));
 				}
 			}
 
 			_easing(percent) {
-				// return percent;
-				// return (--percent) * percent * percent + 1;
 				return (percent < 0.5) ? (2 * percent * percent) : (-1 + (4 - 2 * percent) * percent);
 			}
 
@@ -155,9 +157,8 @@
 			}
 		}
 
-		Orb.swap = function (orb1, orb2) {
-			orb1.animate(orb2.x);
-			orb2.animate(orb1.x);
+		Orb.swap = function (orb1, orb2, animationEnded) {
+			Promise.all([orb1.animate(orb2.x), orb2.animate(orb1.x)]).then(animationEnded).catch(console.error);
 		}
 	</script>
 
