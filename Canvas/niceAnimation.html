@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<script type="text/javascript" src="Canvas/canvas.js"></script>
+	<script type="text/javascript">
+		const colors = ['#5062D4', '#A84ED4', '#4DD55F', '#CAA940', '#12CBC4', '#EE5A24'];
+		const dots = ['UNTIL HERE'];
+		const orbRadius = 10;
+		const orbs = [];
+
+		let newLoop = false;
+
+		Array.prototype.swap = function (indexOne, indexTwo) {
+			const array = this;
+			const temporaryValue = array[indexOne];
+			array[indexOne] = array[indexTwo];
+			array[indexTwo] = temporaryValue;
+			return array;
+		}
+
+		function setup() {
+			canvas = new Canvas(document.getElementsByTagName('canvas')[0], 'auto', 'auto');
+			canvas.background('black');
+
+			addResizeListener();
+
+			const padding = 20;
+			const startPoint = center.x - ((colors.length / 2) * (orbRadius * 2 + padding));
+
+			colors.forEach((object, key) => {
+				orbs.push(new Orb(object, startPoint + key * (orbRadius * 2 + padding)));
+			});
+		}
+
+		function draw() {
+			canvas.background('black');
+
+			if (orbs.some(obj => obj.y + obj.r < 0)) {
+				// noLoop();
+				orbs.forEach((object, key) => {
+					object.y = canvas.height;
+				});
+
+				// dots.length = 0;
+				dots.push('UNTIL HERE');
+				newLoop = true;
+				return;
+			}
+
+			if (newLoop) {
+				dots.shift();
+
+				if (dots[0] == 'UNTIL HERE')
+					newLoop = false;
+			}
+
+			orbs.forEach((object, key) => {
+				object.update();
+				object.show();
+			});
+
+			dots.forEach((object, key) => {
+				canvas.point(object.x, object.y, object.color);
+			});
+
+			if (frameCount / 60 * 1000 % 800 == 0)
+				newSwap();
+		}
+
+		function newSwap() {
+			const pickedIndex = Math.floor(Math.random() * (orbs.length - 1));
+			let secondOrb;
+
+			// Select left or right randomly
+			const randomNum = Math.random();
+
+			if (pickedIndex == 0 || randomNum < 0.5)
+				newIndex = pickedIndex + 1;
+			else if (pickedIndex == orbs.length - 1 || randomNum > 0.5)
+				newIndex = pickedIndex - 1;
+
+			Orb.swap(orbs[pickedIndex], orbs[newIndex]);
+			orbs.swap(pickedIndex, newIndex);
+		}
+
+		class Orb {
+			constructor(color, x) {
+				this.x = x;
+				this.animation;
+				this.r = orbRadius;
+				this.color = color;
+				this.y = canvas.height;
+			}
+
+			show() {
+				canvas.circle(this.x, this.y, this.r, this.color, true);
+			}
+
+			update() {
+				this.y -= 1.5;
+
+				if (this.animation) {
+					if (this.animation.kill)
+						this.animation = null;
+					else
+						this.animation.update();
+				}
+
+				if (frameCount % 10 == 0) { // 20 - 10
+					dots.push({
+						x: this.x,
+						y: this.y,
+						color: this.color
+					});
+				}
+			}
+
+			animate(endX) {
+				this.animation = new Animation(this.x, endX, 2000, this);
+			}
+		}
+
+		class Animation {
+			constructor(startX, endX, duration, obj) {
+				this.deltaX = endX - startX;
+				this.duration = duration;
+				this.startX = startX;
+				this.kill = false;
+				this.obj = obj;
+				this.time = 0;
+			}
+
+			update() {
+				this.time += 60;
+				const t = this.time / this.duration;
+
+				if (t > 1) {
+					this.kill = true;
+					this._fraction(1);
+				} else {
+					this._fraction(this._easing(t));
+				}
+			}
+
+			_easing(percent) {
+				// return percent;
+				// return (--percent) * percent * percent + 1;
+				return (percent < 0.5) ? (2 * percent * percent) : (-1 + (4 - 2 * percent) * percent);
+			}
+
+			_fraction(t) {
+				this.obj.x = this.startX + t * this.deltaX;
+			}
+		}
+
+		Orb.swap = function (orb1, orb2) {
+			orb1.animate(orb2.x);
+			orb2.animate(orb1.x);
+		}
+	</script>
+
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+	<canvas></canvas>
+
+</body>
+
+</html>

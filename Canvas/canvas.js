@@ -54,6 +54,19 @@ function mouse(evt) {
 	mouseY = evt.y;
 }
 
+function addResizeListener(cb) {
+	window.onresize = evt => {
+		resize(evt);
+
+		if ((typeof cb).toLowerCase() == 'function')
+			cb(evt);
+	};
+}
+
+function removeResizeListener() {
+	window.onresize = null;
+}
+
 class Canvas {
 	constructor(canvas, w, h) {
 		this.canvas = canvas;
@@ -849,4 +862,3 @@ Math.rectCircleColliding = function(circle, rect) {
 }
 
 window.onload = load;
-// window.onresize = resize;
